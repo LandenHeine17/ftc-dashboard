@@ -42,13 +42,8 @@ public class MainTesting extends OpMode {
     private double slope = 0;
     double desiredRPM, tps, rpm, motorOffset;
 
-
     // Dashboard instance
     private FtcDashboard dashboard;
-
-
-
-
 
     RobotHardware robot;
     @Override
@@ -72,7 +67,6 @@ public class MainTesting extends OpMode {
         updateTelemetry();
         logFlywheelRPM();
     }
-
 
     private void handleLaunchers() {
         if (gamepad1.rightBumperWasPressed()) {
@@ -184,8 +178,6 @@ public class MainTesting extends OpMode {
         }
 
     }
-
-
     private void handleFlywheelSpeed() {
         if (gamepad1.dpadUpWasPressed()) {
             flywheelSpeed += FLYWHEEL_INCREMENT;
@@ -202,7 +194,6 @@ public class MainTesting extends OpMode {
             robot.flywheelMotor.setPower(flywheelSpeed);
         }
     }
-
     private void updateTelemetry() {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Flywheel Target Speed", "%.2f (%.0f%%)", flywheelSpeed, flywheelSpeed * 100);
