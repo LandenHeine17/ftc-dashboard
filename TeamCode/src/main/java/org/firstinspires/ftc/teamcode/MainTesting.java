@@ -1,16 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+@Config
 @TeleOp
 public class MainTesting extends OpMode {
-
-
     private ElapsedTime runtime = new ElapsedTime();
 
     // --- Flywheel Constants ---
@@ -42,6 +43,14 @@ public class MainTesting extends OpMode {
     private double slope = 0;
     double desiredRPM, tps, rpm, motorOffset;
 
+    private double lastP, lastI, lastD, lastF;
+    public static double kP = 170;
+    public static double kI = 0.0;
+    public static double kD = 0.0001;
+    public static double kF = 14.1;
+    public double stepAmount = 0.001;
+
+
     // Dashboard instance
     private FtcDashboard dashboard;
 
@@ -66,8 +75,26 @@ public class MainTesting extends OpMode {
         handleLaunchers();
         updateTelemetry();
         logFlywheelRPM();
+        updatePIDF();
     }
+    private void updatePIDF() {
 
+        if (gamepad1.dpadUpWasPressed()) {
+            stepAmount *= 10;
+        } else if (gamepad1.dpadDownWasPressed()) {
+            stepAmount *= 0.1;
+        }
+
+
+        if (kP != lastP || kI != lastI || kD != lastD || kF != lastF) {
+            robot.flywheelMotor.setVelocityPIDFCoefficients(kP, kI, kD, kF);
+
+            lastP = kP;
+            lastI = kI;
+            lastD = kD;
+            lastF = kF;
+        }
+    }
     private void handleLaunchers() {
         if (gamepad1.rightBumperWasPressed()) {
 
@@ -175,6 +202,26 @@ public class MainTesting extends OpMode {
                     launchingSequenceActive = 0;
                     break;
             }
+        }else {
+            if (gamepad1.b) {
+                robot.backRightLaunch.setPosition(BACK_RIGHT_UP);
+            } else {
+                robot.backRightLaunch.setPosition(BACK_RIGHT_DOWN);
+            }
+            if (gamepad1.x) {
+                robot.backLeftLaunch.setPosition(BACK_LEFT_UP);
+            } else {
+                robot.backLeftLaunch.setPosition(BACK_LEFT_DOWN);
+            }
+
+            if (gamepad1.y) {
+                robot.frontRightLaunch.setPosition(FRONT_RIGHT_UP);
+                robot.frontLeftLaunch.setPosition(FRONT_LEFT_UP);
+            } else {
+                robot.frontRightLaunch.setPosition(FRONT_RIGHT_DOWN);
+                robot.frontLeftLaunch.setPosition(FRONT_LEFT_DOWN);
+
+            }
         }
 
     }
@@ -190,14 +237,18 @@ public class MainTesting extends OpMode {
         robot.flywheelMotor.setPower(flywheelSpeed);
 
         if (gamepad1.a) {
-            flywheelSpeed = 0.0;
-            robot.flywheelMotor.setPower(flywheelSpeed);
+            robot.flywheelMotor.setPower(0);
         }
     }
     private void updateTelemetry() {
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Flywheel Target Speed", "%.2f (%.0f%%)", flywheelSpeed, flywheelSpeed * 100);
         telemetry.addData("Flywheel Actual Velocity (TPS)", robot.flywheelMotor.getVelocity());
+        telemetry.addData("PIDF COEFFICIETS:\nP", kP);
+        telemetry.addData("I", kI);
+        telemetry.addData("D", kD);
+        telemetry.addData("F", kF);
+        telemetry.addData("STEP AMOUNT", stepAmount);
         telemetry.update();
     }
     private void logFlywheelRPM() {
